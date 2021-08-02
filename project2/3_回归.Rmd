@@ -1,0 +1,78 @@
+---
+title: "Untitled"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r}
+library(dplyr)
+scaled.df = read.csv("data/train_scaled.csv") 
+str(scaled.df)
+```
+
+
+
+```{r, message=FALSE, warning=FALSE}
+scaled.df$passenger_count = factor(scaled.df$passenger_count,levels = c(1,2,3,4), ordered = TRUE)
+scaled.df$start_hour = factor(scaled.df$start_hour)
+scaled.df$day_of_week = factor(scaled.df$day_of_week)
+scaled.df$weather = factor(scaled.df$weather)
+str(scaled.df)  
+```
+
+
+```{r pressure, echo=FALSE}
+model = lm(revenue ~passenger_count+ trip_distance+ duration	+ start_hour + weather+day_of_week +
+             duration*start_hour + duration*day_of_week+ duration*weather, data=scaled.df)
+summary(model)
+
+```
+
+
+```{r}
+model = step(model,scope = revenue ~passenger_count+ trip_distance+ duration	+ start_hour + weather+day_of_week +
+             duration*start_hour + duration*day_of_week + duration * weather,k = log(dim(scaled.df)[1]))
+
+```
+
+
+
+```{r}
+summary(model)
+```
+
+
+```{r}
+plot(model)
+```
+
+
+```{r}
+test.df = read.csv("data/test_scaled.csv") 
+str(test.df)
+```
+
+
+
+```{r, message=FALSE, warning=FALSE}
+test.df$passenger_count = factor(test.df$passenger_count,levels = c(1,2,3,4), ordered = TRUE)
+test.df$start_hour = factor(test.df$start_hour)
+test.df$weather = factor(test.df$weather)
+str(test.df)  
+```
+
+
+
+```{r}
+out = predict.lm(model, test.df, interval = "none")
+out = data.frame("predict" = out)
+write.csv(out, "data/test_output.csv", row.names = FALSE)
+```
+
+
+```{r}
+
+```
+
